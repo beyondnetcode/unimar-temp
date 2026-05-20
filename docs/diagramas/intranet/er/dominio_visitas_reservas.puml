@@ -1,0 +1,47 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam backgroundColor #FEFEFE
+
+entity TC_UNI_VISITANTE {
+  *cnID_Visitante (PK)
+  ctTipoVisitante
+  cbEstado
+}
+
+entity TM_UNI_PERSONA {
+  *id (PK)
+  nombres
+  documento
+}
+
+entity TR_DVA_DOCH {
+  *ID_DOCH (PK)
+  numeroDocumento
+  estado
+}
+
+entity TR_DVA_RESERVA_CAB {
+  *cnID_ReservaCab (PK)
+  ctNumeroBL
+  cdFechaReserva
+  ID_DOCH (FK)
+  ctRUCCliente
+  ctNombreCliente
+  cnID_Visitante (FK)
+  cnEstadoSolicitud
+}
+
+entity TR_DVA_RESERVA_DET {
+  *id (PK)
+  cnID_ReservaCab (FK)
+  servicio
+  cantidad
+}
+
+TC_UNI_VISITANTE ||--o{ TR_DVA_RESERVA_CAB : tipifica
+TR_DVA_RESERVA_CAB }o--o| TM_UNI_PERSONA : solicita
+TR_DVA_RESERVA_CAB }o--o| TR_DVA_DOCH : referencia
+TR_DVA_RESERVA_CAB ||--o{ TR_DVA_RESERVA_DET : detalla
+
+@enduml

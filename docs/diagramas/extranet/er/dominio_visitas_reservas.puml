@@ -1,0 +1,21 @@
+@startuml
+entity TR_DVA_RESERVA_CAB {
+  *cnID_ReservaCab : integer
+}
+entity TR_DVA_RESERVA_DET {
+  *cnID_ReservaDet : integer
+  cnID_ReservaCab : integer (FK)
+  ID_ESTADO : integer (FK)
+}
+entity TR_DVA_RESERVA_HIST {
+  *ID_HISTORICO : integer
+  cnID_ReservaDet : integer (FK)
+}
+entity TC_DVA_ESTADODEVOLUCION {
+  *ID_ESTADO : integer
+  CT_ESTADO : string
+}
+TR_DVA_RESERVA_CAB ||--o{ TR_DVA_RESERVA_DET : contiene
+TR_DVA_RESERVA_DET ||--o{ TR_DVA_RESERVA_HIST : audita
+TC_DVA_ESTADODEVOLUCION ||--o{ TR_DVA_RESERVA_DET : estado
+@enduml

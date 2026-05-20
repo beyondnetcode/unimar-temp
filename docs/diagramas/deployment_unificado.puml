@@ -1,0 +1,110 @@
+@startuml deployment
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 10
+skinparam defaultFontName Arial
+skinparam shadowing false
+
+title Deployment Diagram - SIS_INTRANET (Extranet + Intranet)\nVista Fisica Consolidada por Tiers/Zonas
+
+actor "Usuario Externo\n(Clientes, Operadores)" as userExt
+actor "Usuario Interno\n(Staff, Administradores)" as userInt
+actor "Usuario Movil\n(Apps/Browser)" as userMobile
+
+node "Firewall / WAF" as waf #FFFDE7
+node "IIS Web Farm" as iisLB #E3F2FD
+
+node "IIS Node 1\nAppPool: ExtranetWeb" as iis1 #E3F2FD
+node "IIS Node 2\nAppPool: SIS_INTRANET" as iis2 #FFF3E0
+
+node "ExtranetWeb\nMVC + Web API" as extranetWeb #E3F2FD
+node "Extranet.Interfaces" as extranetInterfaces #E3F2FD
+node "Extranet.business" as extranetBll #E3F2FD
+node "Extranet.data" as extranetDal #E3F2FD
+
+node "SIS_INTRANET Web\nMVC + Web API" as intranetWeb #FFF3E0
+node "INTRANET.Interfaces" as intranetInterfaces #FFF3E0
+node "INTRANET.business" as intranetBll #FFF3E0
+node "INTRANET.data" as intranetDal #FFF3E0
+node "INTRANET.objects" as intranetObjects #FFF3E0
+node "IntranetService\nProxy SOAP/WCF" as intranetSvc #FFF3E0
+
+node "Servicios WCF SAP\nws_extranet/wcf.svc" as wcfSap #E8F5E9
+node "Servicios WCF Agencia\nwcfAgencia.svc" as wcfAgencia #E8F5E9
+node "PortalWebApi\nAuth centralizada" as portalApi #E8F5E9
+node "API REST Externa" as apiRest #E8F5E9
+
+database "SQL Server" as sqlServer #F3E5F5
+database "BD_EXTRANET" as bdExtranet #E3F2FD
+database "BD_INTRANET" as bdIntranet #FFF3E0
+database "BD_BI" as bdBI #F3E5F5
+
+userExt -right-> waf : HTTPS
+userInt -right-> waf : HTTPS
+userMobile -right-> waf : HTTPS
+
+waf -down-> iisLB : HTTPS Terminado
+
+iisLB -down-> iis1
+iisLB -down-> iis2
+
+iis1 -down-> extranetWeb : Hosts
+iis2 -down-> intranetWeb : Hosts
+
+extranetWeb -down-> extranetInterfaces
+extranetInterfaces -down-> extranetBll
+extranetBll -down-> extranetDal
+
+intranetWeb -down-> intranetBll
+intranetWeb -down-> intranetInterfaces
+intranetWeb -down-> intranetObjects
+intranetWeb -down-> intranetSvc
+
+intranetBll -down-> intranetDal
+intranetInterfaces -down-> intranetSvc
+intranetDal -down-> intranetObjects
+
+extranetWeb -right-> portalApi : Auth
+extranetInterfaces -right-> wcfSap : Consume
+intranetSvc -right-> wcfSap : SOAP/WCF
+intranetSvc -right-> wcfAgencia : SOAP/WCF
+intranetInterfaces -right-> apiRest : HTTP/HTTPS
+
+extranetDal -down-> bdExtranet : CRUD/SP
+extranetDal -down-> bdIntranet : Cross-DB
+intranetDal -down-> bdIntranet : ADO.NET/SP
+intranetDal -down-> bdExtranet : Read Maestros
+
+sqlServer -up-> bdExtranet
+sqlServer -up-> bdIntranet
+sqlServer -up-> bdBI
+
+bdExtranet <--> bdIntranet : Datos compartidos
+
+note as securityNote #FFFDE7
+  **Security Concerns:**
+  - ConnectionStrings en Web.config (texto plano)
+  - BLOBs en BD (VARBINARY)
+  - Cookie-based auth sin hardening
+  - Falta auth/csrf declarativo
+  - Debug flag en config base
+end note
+
+note as monitoringNote #FFFDE7
+  **Missing Infrastructure:**
+  - Logging centralizado
+  - Monitoreo/APM
+  - Alertas
+  - Backup/DR
+  - CI/CD Pipeline
+end note
+
+legend right
+  |= Color |= Meaning |
+  | <back:#E3F2FD>  | Extranet exclusive |
+  | <back:#FFF3E0>  | Intranet exclusive |
+  | <back:#E8F5E9>  | Integration/External |
+  | <back:#F3E5F5>  | Data layer |
+  | <back:#FFFDE7>  | Security/Notes |
+endlegend
+
+@enduml

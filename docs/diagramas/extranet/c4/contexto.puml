@@ -1,0 +1,16 @@
+@startuml C4Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+title Contexto - SIS_INTRANET (Extranet)
+
+Person(usuario, "Usuario Externo/Interno", "Opera reservas, documentos y reclamos")
+System(sis, "SIS_INTRANET/Extranet", "Portal web MVC + Web API")
+System_Ext(db, "SQL Server", "BD_EXTRANET / BD_INTRANET")
+System_Ext(wcf, "Servicios WCF SAP/Internos", "Integraciones operativas")
+System_Ext(api, "PortalWebApi", "Autenticacion y menu")
+
+Rel(usuario, sis, "Usa", "HTTPS")
+Rel(sis, db, "Consulta/actualiza", "T-SQL/SP")
+Rel(sis, wcf, "Consume", "HTTP/HTTPS")
+Rel(sis, api, "Autentica y consume menu", "HTTP/HTTPS")
+
+@enduml

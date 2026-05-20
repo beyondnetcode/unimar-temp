@@ -1,0 +1,33 @@
+@startuml
+entity TR_DVA_DOCH {
+  *ID_DOCH : integer
+}
+entity TR_DVA_RESERVA_CAB {
+  *cnID_ReservaCab : integer
+  ID_DOCH : integer (FK)
+}
+entity TR_DVA_RESERVA_DET {
+  *cnID_ReservaDet : integer
+  cnID_ReservaCab : integer (FK)
+}
+entity TR_DVA_RESERVA_HIST {
+  *ID_HISTORICO : integer
+  cnID_ReservaDet : integer (FK)
+}
+entity TC_DVA_PARAMETROS_PROCESO {
+  *ID_PARAMETRO : integer
+}
+entity TC_DVA_OPERACIONES_HORARIO {
+  *ID_HORARIO : integer
+  ID_PARAMETRO : integer (FK)
+}
+entity TC_DVA_OPERACIONES_HORARIO_DET {
+  *ID_HORARIO_DET : integer
+  ID_HORARIO : integer (FK)
+}
+TR_DVA_DOCH ||--o{ TR_DVA_RESERVA_CAB : genera
+TR_DVA_RESERVA_CAB ||--o{ TR_DVA_RESERVA_DET : detalle
+TR_DVA_RESERVA_DET ||--o{ TR_DVA_RESERVA_HIST : cambios
+TC_DVA_PARAMETROS_PROCESO ||--o{ TC_DVA_OPERACIONES_HORARIO : define
+TC_DVA_OPERACIONES_HORARIO ||--o{ TC_DVA_OPERACIONES_HORARIO_DET : descompone
+@enduml

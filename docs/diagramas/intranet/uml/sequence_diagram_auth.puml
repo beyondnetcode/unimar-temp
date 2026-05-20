@@ -1,0 +1,26 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+autonumber
+
+actor Usuario as U
+participant Browser as B
+participant LoginController as L
+participant Seguridad as S
+participant AutenticacionAPI as A
+participant Session as G
+
+U -> B: Envia credenciales
+B -> L: POST /Login/ValidarUsuario(usuario, password)
+L -> S: obtenerDatosUsuario(usuario)
+L -> S: autenticar(usuario, password, ip, navegador, appId)
+
+alt autenticacion exitosa
+  S --> L: resp > 0
+  L -> A: CrearCookieAutenticacion(usuario, password)
+  L -> G: crearSesion(usuario, resp)
+  L --> B: Json(resp=true, notice="")
+else autenticacion fallida
+  S --> L: resp <= 0
+  L --> B: Json(resp=false, notice=mensaje)
+end
+@enduml

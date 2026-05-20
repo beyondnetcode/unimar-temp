@@ -1,0 +1,54 @@
+```mermaid
+flowchart TB
+    UE["Usuario Externo"]
+    UI["Usuario Interno"]
+    UM["Usuario Movil"]
+
+    WAF["Firewall / WAF"]
+    LB["Load Balancer"]
+
+    IIS1["IIS Server 1\nAppPool: ExtranetWeb"]
+    IIS2["IIS Server 2\nAppPool: SIS_INTRANET"]
+
+    WCF["Servidor WCF SAP"]
+    PAPI["PortalWebApi"]
+    AREST["API REST Externa"]
+
+    SQL["SQL Server"]
+    BDE["BD_EXTRANET"]
+    BDI["BD_INTRANET"]
+    BDBI["BD_BI"]
+
+    BLOB["File Server / S3\n(Pendiente)"]
+    ELK["Monitoreo\n(Pendiente)"]
+
+    UE --> WAF
+    UI --> WAF
+    UM --> WAF
+
+    WAF --> LB
+    LB --> IIS1
+    LB --> IIS2
+
+    IIS1 --> PAPI
+    IIS1 --> WCF
+    IIS2 --> WCF
+    IIS2 --> AREST
+
+    IIS1 --> BDE
+    IIS1 --> BDI
+    IIS2 --> BDI
+    IIS2 --> BDE
+
+    SQL --- BDE
+    SQL --- BDI
+    SQL --- BDBI
+    BDE <--> BDI
+
+    BDE -.-> BLOB
+    BDI -.-> BLOB
+
+    IIS1 -.-> ELK
+    IIS2 -.-> ELK
+    SQL -.-> ELK
+```

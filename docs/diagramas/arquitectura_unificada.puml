@@ -1,0 +1,208 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 11
+skinparam defaultFontName Arial
+
+!define EXTRANET_COLOR #E3F2FD
+!define INTRANET_COLOR #FFF3E0
+!define SHARED_COLOR #E8F5E9
+!define EXTERNAL_COLOR #FCE4EC
+!define SECURITY_COLOR #FFF9C4
+!define ZONE_BORDER #37474F
+
+title Arquitectura Unificada - SIS_INTRANET (Extranet + Intranet)\nVista Logica y Fisica Consolidada
+
+' ============================================================
+' SECURITY / NETWORK ZONES
+' ============================================================
+rectangle "Zona Externa / Internet" as internetZone #FAFAFA {
+  rectangle "Perimetro: Firewall / WAF\n(HTTPS Termination)" as waf #SECURITY_COLOR
+}
+
+rectangle "Zona DMZ - Servidores Web IIS" as dmzZone {
+  rectangle "IIS Server - Extranet\n(AppPool: ExtranetWeb)" as iisExtranet #EXTRANET_COLOR
+  rectangle "IIS Server - Intranet\n(AppPool: SIS_INTRANET)" as iisIntranet #INTRANET_COLOR
+}
+
+rectangle "Zona Interna - Servicios Corporativos" as internalZone {
+  rectangle "PortalWebApi\n(Auth Centralizada + Menu)" #EXTERNAL_COLOR as portalApi
+  rectangle "Servicios WCF SAP\n(ws_extranet/wcf.svc\nwcfAgencia.svc)" #EXTERNAL_COLOR as wcfServices
+  rectangle "API REST Externa\n(Servicios complementarios)" #EXTERNAL_COLOR as apiRest
+}
+
+rectangle "Zona Datos - SQL Server" as dataZone {
+  database "SQL Server" as sqlServer #SHARED_COLOR
+  rectangle "BD_EXTRANET" as bdExtranet #EXTRANET_COLOR
+  rectangle "BD_INTRANET" as bdIntranet #INTRANET_COLOR
+  rectangle "BD_BI" as bdBI #SHARED_COLOR
+}
+
+' ============================================================
+' ACTORS
+' ============================================================
+actor "Usuario Externo\n(Clientes, Operadores)" as userExt #EXTRANET_COLOR
+actor "Usuario Interno\n(Staff, Administradores)" as userInt #INTRANET_COLOR
+actor "Usuario Movil\n(Funcionalidades moviles)" as userMobile #INTRANET_COLOR
+
+' ============================================================
+' EXTRANET COMPONENTS (Logical View)
+' ============================================================
+rectangle "EXTRANET - Componentes Exclusivos" as extranetBoundary #EXTRANET_COLOR {
+  component "ExtranetWeb\n(ASP.NET MVC 4 + Web API 4)" as extranetWeb
+  component "Extranet.Interfaces\n(Fachadas de negocio)" as extranetInterfaces
+  component "Extranet.business\n(Reglas y orquestacion)" as extranetBll
+  component "Extranet.data\n(Acceso a datos via SP)" as extranetDal
+}
+
+' ============================================================
+' INTRANET COMPONENTS (Logical View)
+' ============================================================
+rectangle "INTRANET - Componentes Exclusivos" as intranetBoundary #INTRANET_COLOR {
+  component "SIS_INTRANET Web\n(ASP.NET MVC 4 + Web API 4)" as intranetWeb
+  component "INTRANET.Interfaces\n(Integraciones + Control accesos)" as intranetInterfaces
+  component "INTRANET.business\n(Reglas de negocio y orquestacion)" as intranetBll
+  component "INTRANET.data\n(ADO.NET + Stored Procedures)" as intranetDal
+  component "INTRANET.objects\n(Entidades + DTOs)" as intranetObjects
+  component "IntranetService\n(Proxy SOAP/WCF)" as intranetSvc
+}
+
+' ============================================================
+' SHARED COMPONENTS
+' ============================================================
+rectangle "COMPONENTES COMPARTIDOS" as sharedBoundary #SHARED_COLOR {
+  component "SQL Server\n(BD_EXTRANET / BD_INTRANET / BD_BI)" as sharedSql
+  component "Servicios WCF Externos\n(SAP / Sistemas internos)" as sharedWcf
+}
+
+' ============================================================
+' EXTERNAL SYSTEMS
+' ============================================================
+rectangle "SISTEMAS EXTERNOS" as externalBoundary #EXTERNAL_COLOR {
+  component "PortalWebApi\n(Autenticacion centralizada)" as extPortalApi
+  component "API REST Externa" as extApiRest
+}
+
+' ============================================================
+' CONNECTIONS - Actors to DMZ
+' ============================================================
+userExt -right-> waf : "HTTPS\nReservas, Documentos, Reclamos"
+userInt -right-> waf : "HTTPS\nModulos de negocio"
+userMobile -right-> waf : "HTTPS\nFuncionalidades moviles"
+
+waf -down-> iisExtranet : "HTTPS (Terminado)"
+waf -down-> iisIntranet : "HTTPS (Terminado)"
+
+' ============================================================
+' IIS to Application Components
+' ============================================================
+iisExtranet -down-> extranetWeb : "Hosts"
+iisIntranet -down-> intranetWeb : "Hosts"
+
+' ============================================================
+' EXTRANET INTERNAL FLOWS
+' ============================================================
+extranetWeb -down-> extranetInterfaces : "Invoca"
+extranetInterfaces -down-> extranetBll : "Invoca"
+extranetBll -down-> extranetDal : "Invoca"
+extranetDal -down-> bdExtranet : "CRUD / SP\nT-SQL"
+
+' ============================================================
+' INTRANET INTERNAL FLOWS
+' ============================================================
+intranetWeb -down-> intranetBll : "Invoca"
+intranetWeb -down-> intranetInterfaces : "Invoca"
+intranetWeb -down-> intranetObjects : "Usa"
+intranetWeb -down-> intranetSvc : "Invoca"
+
+intranetBll -down-> intranetDal : "Invoca"
+intranetBll -down-> intranetObjects : "Usa"
+intranetInterfaces -down-> intranetBll : "Invoca"
+intranetInterfaces -down-> intranetSvc : "Invoca"
+intranetDal -down-> intranetObjects : "Usa"
+intranetDal -down-> bdIntranet : "Lee/Escribe\nADO.NET/SP"
+
+intranetSvc -down-> sharedWcf : "Consume\nSOAP/WCF"
+
+' ============================================================
+' EXTRANET -> EXTERNAL
+' ============================================================
+extranetWeb -right-> extPortalApi : "Autentica y consume menu\nHTTP/HTTPS"
+extranetInterfaces -right-> sharedWcf : "Consume\nHTTP/HTTPS"
+
+' ============================================================
+' CROSS-SIDE COMMUNICATION (Extranet <-> Intranet)
+' ============================================================
+note as crossNote
+  **Puntos de Integracion Cruzada:**
+  - BD_EXTRANET es accedida desde Intranet (lectura)
+  - BD_INTRANET es accedida desde Extranet (lectura/escritura)
+  - Servicios WCF son compartidos por ambos lados
+  - PortalWebApi sirve autenticacion a Extranet
+  - WCF Externos (ws_extranet/wcf.svc, wcfAgencia.svc)
+    son consumidos por ambos sistemas
+end note
+
+bdExtranet <--> bdIntranet : "Datos compartidos\n(Maestros: Empresa, Persona)"
+
+' ============================================================
+' SHARED DATABASE DETAIL
+' ============================================================
+sqlServer -up-> bdExtranet : "Contiene"
+sqlServer -up-> bdIntranet : "Contiene"
+sqlServer -up-> bdBI : "Contiene"
+
+bdExtranet -left-> extranetDal : "BD primaria"
+bdIntranet -right-> intranetDal : "BD primaria"
+
+' ============================================================
+' SECURITY ZONES LABELS
+' ============================================================
+note as securityNote
+  **Zonas de Seguridad:**
+  - Zona Externa: Internet, clientes externos
+  - Perimetro: Firewall/WAF con terminacion HTTPS
+  - DMZ: Servidores IIS (Extranet + Intranet)
+  - Zona Interna: Servicios WCF, APIs externas
+  - Zona Datos: SQL Server (acceso restringido)
+  
+  **Secretos (ADR-0003):**
+  - ConnectionStrings en Web.config sin cifrar
+  - Pendiente: RSA Protected Configuration
+  
+  **BLOBs (ADR-0004):**
+  - Archivos almacenados en BD (VARBINARY)
+  - Pendiente: Externalizacion a Storage
+end note
+
+' ============================================================
+' TECHNOLOGY STACK
+' ============================================================
+note as techNote
+  **Stack Tecnologico Compartido:**
+  - .NET Framework 4.5
+  - ASP.NET MVC 4
+  - Web API 4
+  - ADO.NET + Stored Procedures
+  - SQL Server (MSSQL)
+  - WCF/SOAP para integraciones
+  - IIS (servidores web)
+  
+  **Dominios de Datos:**
+  - Transmisiones (Manifiestos, DAMs, Contenedores)
+  - Deposito Vacios (Reservas, Solicitudes)
+  - Reclamos (Cabecera, Documentos)
+  - Seguridad (Usuarios, Areas, Gerencias)
+  - Visitas/Reservas
+  - Operativo/Comercial
+end note
+
+legend right
+  |= Color |= Significado |
+  | <back:#E3F2FD>  | Componentes exclusivos Extranet |
+  | <back:#FFF3E0>  | Componentes exclusivos Intranet |
+  | <back:#E8F5E9>  | Componentes compartidos |
+  | <back:#FCE4EC>  | Sistemas externos |
+  | <back:#FFF9C4>  | Seguridad / Perimetro |
+endlegend
+
+@enduml

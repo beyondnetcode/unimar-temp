@@ -1,0 +1,31 @@
+@startuml
+skinparam backgroundColor #F5F5F5
+skinparam defaultFontSize 10
+
+rectangle "Anexo de Diagramas" as A #87CEEB
+rectangle "Class Diagram" as U1 #B0E0E6
+rectangle "Sequence Diagram" as U2 #B0E0E6
+rectangle "Activity Diagram" as U3 #B0E0E6
+rectangle "C4 Contexto" as C1 #B0E0E6
+rectangle "C4 Contenedores" as C2 #B0E0E6
+rectangle "Glosario" as G #D3D3D3
+rectangle "ER Transmisiones" as E1 #DDA0DD
+rectangle "ER Operativo" as E2 #DDA0DD
+rectangle "ER Seguridad" as E3 #DDA0DD
+rectangle "ER Reclamos" as E4 #DDA0DD
+rectangle "ER Visitas" as E5 #DDA0DD
+rectangle "ER DVA" as E6 #DDA0DD
+
+A --> U1
+A --> U2
+A --> U3
+A --> C1
+A --> C2
+A --> G
+A --> E1
+A --> E2
+A --> E3
+A --> E4
+A --> E5
+A --> E6
+@enduml

@@ -1,0 +1,166 @@
+@startuml deployment
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 10
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam nodeBackgroundColor #F5F5F5
+skinparam nodeBorderColor #333333
+
+title Vista Fisica - Infraestructura de Servidores\nSIS_INTRANET (Extranet + Intranet)
+
+' ============================================================
+' ZONA EXTERNA
+' ============================================================
+package "ZONA EXTERNA / INTERNET" as zonaExt #FAFAFA {
+  actor "Usuario Externo" as uExt
+  actor "Usuario Interno" as uInt
+  actor "Usuario Movil" as uMob
+}
+
+' ============================================================
+' PERIMETRO
+' ============================================================
+package "PERIMETRO" as perimetro #FFF9C4 {
+  node "Load Balancer\n(F5 / Nginx / AWS ALB)" as lb #FFF9C4
+  node "Firewall / WAF\n(AWS WAF / ModSecurity)" as waf #FFF9C4
+}
+
+' ============================================================
+' DMZ - SERVIDORES WEB
+' ============================================================
+package "DMZ - SERVIDORES WEB IIS" as dmz #E3F2FD {
+  node "IIS Server 1\nWindows Server 2016/2019\nAppPool: ExtranetWeb" as iis1 #E3F2FD {
+    artifact "ExtranetWeb\n(ASP.NET MVC 4)" as extranetApp
+  }
+  
+  node "IIS Server 2\nWindows Server 2016/2019\nAppPool: SIS_INTRANET" as iis2 #FFF3E0 {
+    artifact "SIS_INTRANET Web\n(ASP.NET MVC 4)" as intranetApp
+  }
+}
+
+' ============================================================
+' SERVIDORES DE SERVICIOS
+' ============================================================
+package "SERVIDORES DE SERVICIOS" as svcZone #E8F5E9 {
+  node "Servidor WCF SAP\nWindows Server 2016" as wcfSapServer #E8F5E9 {
+    artifact "ws_extranet/wcf.svc" as wcfSap
+    artifact "wcfAgencia.svc" as wcfAgencia
+  }
+  
+  node "Servidor PortalWebApi\n(Windows Server / Linux)" as portalApiServer #E8F5E9 {
+    artifact "PortalWebApi\n(Auth + Menu)" as portalApi
+  }
+  
+  node "Servidor API REST\n(Windows Server / Linux)" as apiRestServer #E8F5E9 {
+    artifact "API REST Externa" as apiRest
+  }
+}
+
+' ============================================================
+' SERVIDOR DE BASE DE DATOS
+' ============================================================
+package "SERVIDOR DE BASE DE DATOS" as dbZone #F3E5F5 {
+  node "SQL Server\n(Windows Server 2016/2019\nSQL Server 2016/2019)" as sqlNode #F3E5F5 {
+    database "BD_EXTRANET" as bdExtranet
+    database "BD_INTRANET" as bdIntranet
+    database "BD_BI" as bdBI
+  }
+}
+
+' ============================================================
+' STORAGE EXTERNO (pendiente)
+' ============================================================
+package "STORAGE (Pendiente - ADR-0004)" as storageZone #FFEBEE {
+  node "File Server / S3\n(BLOBs externalizados)" as blobStorage #FFEBEE
+}
+
+' ============================================================
+' MONITOREO (Pendiente)
+' ============================================================
+package "MONITOREO (Pendiente)" as monitorZone #FFEBEE {
+  node "ELK Stack / Application Insights" as monitor
+}
+
+' ============================================================
+' CONEXIONES - ZONA EXTERNA -> PERIMETRO
+' ============================================================
+uExt -right-> waf : HTTPS (443)
+uInt -right-> waf : HTTPS (443)
+uMob -right-> waf : HTTPS (443)
+
+waf -down-> lb : HTTPS Terminado
+
+' ============================================================
+' CONEXIONES - PERIMETRO -> DMZ
+' ============================================================
+lb -down-> iis1 : HTTP (80)\nLoad Balanced
+lb -down-> iis2 : HTTP (80)\nLoad Balanced
+
+' ============================================================
+' CONEXIONES - DMZ -> SERVICIOS
+' ============================================================
+extranetApp -right-> portalApi : HTTP/HTTPS\nAuth + Menu
+extranetApp -right-> wcfSap : HTTP/HTTPS\nServicios SAP
+
+intranetApp -right-> wcfSap : SOAP/WCF\nServicios SAP
+intranetApp -right-> wcfAgencia : SOAP/WCF\nServicios Agencia
+intranetApp -right-> apiRest : HTTP/HTTPS\nServicios complementarios
+
+' ============================================================
+' CONEXIONES - DMZ -> BASE DE DATOS
+' ============================================================
+extranetApp -down-> bdExtranet : T-SQL/SP\n(Primary)
+extranetApp -down-> bdIntranet : T-SQL/SP\n(Cross-DB)
+
+intranetApp -down-> bdIntranet : ADO.NET/SP\n(Primary)
+intranetApp -down-> bdExtranet : T-SQL/SP\n(Read Maestros)
+
+' ============================================================
+' CONEXIONES - BASE DE DATOS INTERNA
+' ============================================================
+bdExtranet <--> bdIntranet : Datos compartidos\n(Maestros sincronizados)
+
+' ============================================================
+' CONEXIONES - STORAGE (pendiente)
+' ============================================================
+bdExtranet .down.> blobStorage : BLOBs externalizados\n(Pendiente ADR-0004)
+bdIntranet .down.> blobStorage : BLOBs externalizados\n(Pendiente ADR-0004)
+
+' ============================================================
+' CONEXIONES - MONITOREO (pendiente)
+' ============================================================
+iis1 .up.> monitor : Logs + Metrics
+iis2 .up.> monitor : Logs + Metrics
+sqlNode .up.> monitor : Logs + Metrics
+
+' ============================================================
+' NOTAS DE SEGURIDAD
+' ============================================================
+note as securityNote #FFF9C4
+  **Security Concerns:**
+  - ConnectionStrings en Web.config (texto plano)
+  - BLOBs en BD (VARBINARY) - ADR-0004
+  - Cookie-based auth sin hardening
+  - Falta auth/csrf declarativo
+  - Debug flag en config base
+end note
+
+note as networkNote #E3F2FD
+  **Network Topology:**
+  - VLAN DMZ: Servidores IIS
+  - VLAN Interna: Servicios WCF/APIs
+  - VLAN Datos: SQL Server (acceso restringido)
+  - Reglas firewall entre cada VLAN
+end note
+
+legend right
+  |= Color |= Meaning |
+  | <back:#E3F2FD>  | Extranet exclusive |
+  | <back:#FFF3E0>  | Intranet exclusive |
+  | <back:#E8F5E9>  | Integration/External services |
+  | <back:#F3E5F5>  | Data layer |
+  | <back:#FFF9C4>  | Security/Perimeter |
+  | <back:#FFEBEE>  | Pending improvements |
+endlegend
+
+@enduml

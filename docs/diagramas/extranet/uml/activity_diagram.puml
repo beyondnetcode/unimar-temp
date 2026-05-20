@@ -1,0 +1,15 @@
+@startuml
+start
+:Inicio ventana Go-Live ASAP;
+if (6 bloqueantes cerrados?) then (No)
+  :NO-GO: cerrar bloqueantes y revalidar;
+  end
+else (Si)
+  :GO CONDICIONADO;
+  :Fase 1: estabilizacion temprana;
+  :Fase 2: hardening seguridad;
+  :Fase 3: optimizacion funcional y datos;
+  :Fase 4: modernizacion estructural;
+  end
+endif
+@enduml

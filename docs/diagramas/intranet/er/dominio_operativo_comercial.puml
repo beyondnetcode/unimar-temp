@@ -1,0 +1,78 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam backgroundColor #FEFEFE
+
+entity TM_UNI_EMPRESA {
+  *id (PK)
+  razonSocial
+  ruc
+}
+
+entity TM_UNI_PERSONA {
+  *id (PK)
+  empresaId (FK)
+  nombres
+  apellidoPaterno
+  apellidoMaterno
+  documento
+}
+
+entity TR_UNI_RECLAMO {
+  *id (PK)
+  personaId (FK)
+  datetime fechaRegistro
+  estado
+  descripcion
+}
+
+entity TR_UNI_RECLAMO_DOC {
+  *id (PK)
+  reclamoId (FK)
+  rutaAdjunto
+  nombreArchivo
+}
+
+entity TR_UNI_MOVIMIENTO_CAB {
+  *id (PK)
+  fechaMovimiento
+  estado
+  tipoOperacion
+}
+
+entity TR_UNI_MOVIMIENTO_DET {
+  *id (PK)
+  movimientoCabId (FK)
+  descripcion
+  cantidad
+}
+
+entity TR_UNI_MOVIMIENTO_CNT {
+  *id (PK)
+  movimientoCabId (FK)
+  numeroContenedor
+  tipoContenedor
+}
+
+entity TR_DVA_RESERVA_CAB {
+  *id (PK)
+  fechaReserva
+  estado
+  codigoReserva
+}
+
+entity TR_DVA_RESERVA_DET {
+  *id (PK)
+  reservaCabId (FK)
+  servicio
+  cantidad
+}
+
+TM_UNI_EMPRESA ||--o{ TM_UNI_PERSONA : agrupa
+TM_UNI_PERSONA ||--o{ TR_UNI_RECLAMO : registra
+TR_UNI_RECLAMO ||--o{ TR_UNI_RECLAMO_DOC : adjunta
+TR_UNI_MOVIMIENTO_CAB ||--o{ TR_UNI_MOVIMIENTO_DET : detalla
+TR_UNI_MOVIMIENTO_CAB ||--o{ TR_UNI_MOVIMIENTO_CNT : contiene
+TR_DVA_RESERVA_CAB ||--o{ TR_DVA_RESERVA_DET : detalla
+
+@enduml

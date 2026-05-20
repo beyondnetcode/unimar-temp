@@ -1,0 +1,23 @@
+@startuml
+entity SG_USUARIO {
+  *ID_USUARIO : integer
+}
+entity TB_USUARIO {
+  *ctUsuario : string
+  SG_USUARIO_ID : integer (FK)
+}
+entity TB_MENU {
+  *ID_MENU : integer
+  ctUsuario : string (FK)
+}
+entity TM_UNI_PERSONA {
+  *cnIdPersona : integer
+}
+entity TM_UNI_EMPRESA {
+  *ID_EMPRESA : integer
+}
+SG_USUARIO ||--|| TB_USUARIO : representa
+TB_USUARIO ||--o{ TB_MENU : accede
+TB_USUARIO }o--|| TM_UNI_PERSONA : referencia
+TB_USUARIO }o--|| TM_UNI_EMPRESA : patrocina
+@enduml

@@ -1,0 +1,126 @@
+# Deployment Diagram - SIS_INTRANET (Extranet + Intranet)
+# Vista Fisica Consolidada por Tiers/Zonas
+
+```mermaid
+flowchart TB
+    UE["Usuario Externo\n(Clientes, Operadores)"]
+    UI["Usuario Interno\n(Staff, Administradores)"]
+    UM["Usuario Movil\n(Apps/Browser)"]
+
+    WAF["Firewall / WAF\n(HTTPS Termination)"]
+    
+    IIS1["IIS Node 1\nAppPool: ExtranetWeb"]
+    IIS2["IIS Node 2\nAppPool: SIS_INTRANET"]
+
+    EW["ExtranetWeb\nMVC + Web API"]
+    EI["Extranet.Interfaces"]
+    EB["Extranet.business"]
+    ED["Extranet.data"]
+
+    IW["SIS_INTRANET Web\nMVC + Web API"]
+    II["INTRANET.Interfaces"]
+    IB["INTRANET.business"]
+    ID["INTRANET.data"]
+    IO["INTRANET.objects"]
+    IS["IntranetService\nProxy SOAP/WCF"]
+
+    WSAP["Servicios WCF SAP\nws_extranet/wcf.svc"]
+    WAGE["Servicios WCF Agencia\nwcfAgencia.svc"]
+    PAPI["PortalWebApi\nAuth centralizada"]
+    AREST["API REST Externa"]
+
+    SQL["SQL Server"]
+    BDE["BD_EXTRANET"]
+    BDI["BD_INTRANET"]
+    BDBI["BD_BI"]
+
+    UE -->|HTTPS| WAF
+    UI -->|HTTPS| WAF
+    UM -->|HTTPS| WAF
+
+    WAF -->|HTTPS Terminado| IIS1
+    WAF -->|HTTPS Terminado| IIS2
+
+    IIS1 -->|Hosts| EW
+    IIS2 -->|Hosts| IW
+
+    EW --> EI
+    EI --> EB
+    EB --> ED
+
+    IW --> IB
+    IW --> II
+    IW --> IO
+    IW --> IS
+    IB --> ID
+    II --> IS
+    ID --> IO
+
+    EW -->|Auth| PAPI
+    EI -->|Consume| WSAP
+    IS -->|SOAP/WCF| WSAP
+    IS -->|SOAP/WCF| WAGE
+    II -->|HTTP/HTTPS| AREST
+
+    ED -->|CRUD/SP| BDE
+    ED -->|Cross-DB| BDI
+    ID -->|ADO.NET/SP| BDI
+    ID -->|Read Maestros| BDE
+
+    SQL --- BDE
+    SQL --- BDI
+    SQL --- BDBI
+    BDE <-->|Datos compartidos| BDI
+
+    classDef extranet fill:#E3F2FD,stroke:#1976D2,stroke-width:2px
+    classDef intranet fill:#FFF3E0,stroke:#F57C00,stroke-width:2px
+    classDef external fill:#E8F5E9,stroke:#388E3C,stroke-width:2px
+    classDef data fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px
+    classDef security fill:#FFFDE7,stroke:#FBC02D,stroke-width:2px
+
+    class EW,EI,EB,ED extranet
+    class IW,II,IB,ID,IO,IS intranet
+    class WSAP,WAGE,PAPI,AREST external
+    class SQL,BDE,BDI,BDBI data
+    class WAF security
+```
+
+## Tier Summary
+
+| Tier | Name | Key Components |
+|------|------|----------------|
+| 0 | External/Internet | Users (External, Internal, Mobile) |
+| 1 | Perimeter/DMZ | Firewall/WAF, IIS Web Farm |
+| 2 | Application | ExtranetWeb, SIS_INTRANET, Business/Data layers |
+| 3 | Integration | WCF Services, PortalWebApi, REST APIs |
+| 4 | Data | SQL Server (BD_EXTRANET, BD_INTRANET, BD_BI) |
+
+## Communication Flows
+
+| From | To | Protocol | Purpose |
+|------|----|----------|---------|
+| Users | WAF | HTTPS | Secure web access |
+| WAF | IIS | HTTPS (terminated) | Load balanced requests |
+| IIS | Web Apps | Local | Application hosting |
+| Web -> Interfaces | Business Layer | In-process | Business logic |
+| Business -> Data | SQL Server | T-SQL/SP | Data operations |
+| Extranet | PortalWebApi | HTTP/HTTPS | Authentication |
+| Both | WCF Services | SOAP/WCF | SAP/Agency integration |
+| Intranet | API REST | HTTP/HTTPS | Complementary services |
+| Both | Cross-DB | T-SQL | Shared master data |
+
+## Security Concerns (from ADRs)
+
+- **ADR-0003**: ConnectionStrings in Web.config without RSA encryption
+- **ADR-0004**: BLOBs stored in database (VARBINARY) causing over-fetching
+- Cookie-based authentication without complete hardening
+- Missing declarative auth/CSRF protection
+- Debug flag enabled in base config
+
+## Missing Infrastructure
+
+- Centralized logging
+- Monitoring/APM
+- Alerting system
+- Backup/DR strategy
+- CI/CD Pipeline

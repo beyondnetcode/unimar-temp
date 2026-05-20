@@ -1,0 +1,22 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+SHOW_PERSON_OUTLINE()
+
+Person(usuario, "Usuario Intranet", "Opera modulos de negocio y consultas")
+Person(movil, "Usuario Movil", "Usa funcionalidades moviles")
+
+System(sis, "SIS_INTRANET", "Aplicacion web ASP.NET MVC/Web API para procesos operativos")
+
+System_Ext(bd, "BD_INTRANET/BD_EXTRANET/BD_BI", "SQL Server - Persistencia")
+System_Ext(wsSeg, "Servicios WCF Externos", "Autenticacion, menu, servicios de negocio")
+System_Ext(apiRest, "API REST Externa", "Servicios complementarios")
+
+Rel(usuario, sis, "Usa", "HTTPS")
+Rel(movil, sis, "Usa", "HTTPS")
+Rel(sis, bd, "Lee/Escribe", "ADO.NET/SP")
+Rel(sis, wsSeg, "Consume", "SOAP/WCF")
+Rel(sis, apiRest, "Consume", "HTTP/HTTPS")
+
+SHOW_LEGEND()
+@enduml

@@ -1,0 +1,21 @@
+@startuml
+entity TR_UNI_RECLAMO {
+  *ID_RECLAMO : integer
+  ctUsuario : string (FK)
+  ID_MOTIVO : integer (FK)
+}
+entity TR_UNI_RECLAMO_DOC {
+  *ID_RECLAMO_DOC : integer
+  ID_RECLAMO : integer (FK)
+}
+entity TM_UNI_MOTIVORECLAMO {
+  *ID_MOTIVO : integer
+  CT_DESCRIPCION : string
+}
+entity TB_USUARIO {
+  *ctUsuario : string
+}
+TR_UNI_RECLAMO ||--o{ TR_UNI_RECLAMO_DOC : adjunta
+TM_UNI_MOTIVORECLAMO ||--o{ TR_UNI_RECLAMO : clasifica
+TB_USUARIO ||--o{ TR_UNI_RECLAMO : registra
+@enduml

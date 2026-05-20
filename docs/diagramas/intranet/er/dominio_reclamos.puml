@@ -1,0 +1,54 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam backgroundColor #FEFEFE
+
+entity TM_UNI_EMPRESA {
+  *id (PK)
+  ruc
+  razonSocial
+}
+
+entity TM_UNI_PERSONA {
+  *id (PK)
+  nombres
+  apellidos
+  email
+  telefono
+}
+
+entity TM_UNI_MOTIVO_RECLAMO {
+  *cnID_MotivoReclamo (PK)
+  descripcion
+}
+
+entity TC_UNI_RESPONSABLE_RECLAMO {
+  *id (PK)
+  responsable
+}
+
+entity TR_UNI_RECLAMO {
+  *cnID_ReclamoCab (PK)
+  ctClienteRUC
+  cnID_MotivoReclamo (FK)
+  ctResponsableReclamo
+  ctDocumentoReferencia
+  ctDescripcionReclamo
+  ctEstadoReclamo
+  cbProcede
+}
+
+entity TR_UNI_RECLAMO_DOC {
+  *id (PK)
+  reclamoId (FK)
+  rutaAdjunto
+  nombreArchivo
+}
+
+TM_UNI_EMPRESA ||--o{ TR_UNI_RECLAMO : reporta
+TM_UNI_PERSONA ||--o{ TR_UNI_RECLAMO : contacta
+TR_UNI_RECLAMO }o--|| TM_UNI_MOTIVO_RECLAMO : clasifica
+TR_UNI_RECLAMO }o--o| TC_UNI_RESPONSABLE_RECLAMO : asigna
+TR_UNI_RECLAMO ||--o{ TR_UNI_RECLAMO_DOC : adjunta
+
+@enduml

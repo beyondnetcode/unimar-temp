@@ -1,0 +1,25 @@
+@startuml
+entity TR_DVA_DOCH {
+  *ID_DOCH : integer
+}
+entity TR_DVA_DOCP {
+  *ID_DOCP : integer
+  ID_DOCH : integer (FK)
+}
+entity TR_DVA_DOCH_ITEM {
+  *ID_DOCT : integer
+  ID_DOCH : integer (FK)
+}
+entity TR_DVA_DOPL {
+  *ID_DOPL : integer
+  ID_DOCH : integer (FK)
+}
+entity TR_DVA_DSER {
+  *ID_DSER : integer
+  ID_DOPL : integer (FK)
+}
+TR_DVA_DOCH ||--o{ TR_DVA_DOCP : planifica
+TR_DVA_DOCH ||--o{ TR_DVA_DOCH_ITEM : contiene
+TR_DVA_DOCH ||--o{ TR_DVA_DOPL : opera
+TR_DVA_DOPL ||--o{ TR_DVA_DSER : servicios
+@enduml

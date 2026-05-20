@@ -1,0 +1,98 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam backgroundColor #FEFEFE
+
+entity TR_UNI_MANIFIESTO {
+  *cnID_Manifiesto (PK)
+  cnViaTransporte
+  ctCodigoAduana
+  ctAnhoManifiesto
+  ctNroManifiesto
+  ctNave
+}
+
+entity TR_UNI_TRANSMISION {
+  *cnID_Transmision (PK)
+  cnID_Manifiesto (FK)
+  cnID_Respuesta (FK)
+  cnID_ArchivoEnvio (FK)
+  cnID_ArchivoRespuesta (FK)
+  ctCorrelativo
+  ctDocumentoTransporte
+  ctSerieVIN
+  cnCodigoEstado
+}
+
+entity TR_UNI_ARCHIVO {
+  *cnID_Archivo (PK)
+  cdFechaHoraEnvio
+  ctTipoArchivo
+  ctNombreArchivo
+  cbComprimido
+  coData (BLOB)
+}
+
+entity TR_UNI_RESPUESTA {
+  *cnID_Respuesta (PK)
+  cnID_Transmision (FK)
+  cdFechaHoraRespuesta
+  cnCodigoEstado
+  cnCantidadErrores
+  cnCantidadAdvertencias
+  cnCantidadMensajes
+}
+
+entity TR_UNI_CONTENEDOR_TRANSMISION {
+  *cnID_ContenedorTransmision (PK)
+  cnID_Transmision (FK)
+  ctNumero
+  ctTipo
+  ctTamano
+  cnTara
+  cnPayload
+}
+
+entity TR_UNI_PRECINTO_CONTENEDOR {
+  *cnID_PrecintoContenedor (PK)
+  cnID_ContenedorTransmision (FK)
+  ctTipo
+  ctNumero
+  ctCondicion
+}
+
+entity TR_UNI_DAM_TRANSMISION {
+  *cnID_DAMTransmision (PK)
+  cnID_Transmision (FK)
+  ctNumeroDAM
+  ctCodigoOperacion
+  ctNroDocumentoDespachador
+}
+
+entity TR_UNI_DOCUMENTO_TRANSMISION {
+  *cnID_DocumentoTransmision (PK)
+  cnID_DAMTransmision (FK)
+  cnID_Transmision (FK)
+  ctDocumentoTransporte
+  cbLigado
+}
+
+entity TR_UNI_MENSAJE_TRANSMISION {
+  *cnID_MensajeTransmision (PK)
+  cnID_Transmision (FK)
+  ctTipo
+  ctCodigo
+  ctMensaje
+}
+
+TR_UNI_MANIFIESTO ||--o{ TR_UNI_TRANSMISION : agrupa
+TR_UNI_ARCHIVO ||--o{ TR_UNI_TRANSMISION : archivo_envio
+TR_UNI_ARCHIVO ||--o{ TR_UNI_RESPUESTA : archivo_respuesta
+TR_UNI_TRANSMISION ||--o| TR_UNI_RESPUESTA : genera
+TR_UNI_TRANSMISION ||--o{ TR_UNI_CONTENEDOR_TRANSMISION : contiene
+TR_UNI_CONTENEDOR_TRANSMISION ||--o{ TR_UNI_PRECINTO_CONTENEDOR : registra
+TR_UNI_TRANSMISION ||--o{ TR_UNI_DAM_TRANSMISION : declara
+TR_UNI_DAM_TRANSMISION ||--o{ TR_UNI_DOCUMENTO_TRANSMISION : referencia
+TR_UNI_TRANSMISION ||--o{ TR_UNI_MENSAJE_TRANSMISION : produce
+
+@enduml

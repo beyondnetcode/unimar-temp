@@ -1,0 +1,41 @@
+@startuml
+class ExtranetWebController {
+  +ActionResult Login()
+  +JsonResult ValidarUsuario()
+}
+
+class InterfacesFacade {
+  +Seguridad.autenticar()
+  +AsignacionVacios.*
+  +DevolucionCntr.*
+}
+
+class BusinessBLL {
+  +TR_DVA_DOCHBLL
+  +TR_DVA_Reserva_CabBLL
+  +TR_DVA_Reserva_DetBLL
+  +TR_UNI_ReclamoBLL
+}
+
+class DataDAL {
+  +TR_DVA_DOCHDAL
+  +TR_DVA_Reserva_CabDAL
+  +TR_DVA_Reserva_DetDAL
+  +TR_UNI_ReclamoDAL
+  +ExecuteReader()
+}
+
+class Entities {
+  +TR_DVA_DOCH
+  +TR_DVA_Reserva_Cab
+  +TR_DVA_Reserva_Det
+  +TR_UNI_Reclamo
+  +TB_Usuario
+}
+
+ExtranetWebController --> InterfacesFacade
+InterfacesFacade --> BusinessBLL
+BusinessBLL --> DataDAL
+BusinessBLL --> Entities
+DataDAL --> Entities
+@enduml

@@ -1,0 +1,21 @@
+@startuml
+autonumber
+actor U as Usuario
+participant C as LoginController
+participant I as Interfaces.Seguridad
+participant A as AutenticacionApiRest
+participant API as PortalWebApi
+
+U -> C: POST ValidarUsuario(usuario,password)
+C -> I: autenticar(usuario,password,ip,navegador)
+I --> C: resp (ok/error)
+alt resp > 0
+  C -> A: CrearCookieAutenticacion()
+  A -> API: POST Seguridad/login
+  API --> A: Cookies X-Auth-Cookie/X-Refresh-Token
+  A --> C: DatosUsuarioAplicacion
+  C --> U: JSON resp=true
+else resp <= 0
+  C --> U: JSON resp=false + mensaje
+end
+@enduml

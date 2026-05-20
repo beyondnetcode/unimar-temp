@@ -1,0 +1,29 @@
+@startuml
+skinparam backgroundColor #FEFEFE
+start
+
+:Cliente Web;
+:Ruteo MVC/WebAPI;
+
+if (Sesion activa?) then (No)
+  :Redirigir a Login;
+else (Si)
+  if (Acceso permitido por menu/filtro?) then (No)
+    :401 o redireccion a inicio;
+  else (Si)
+    :Controller Action;
+    :Business Layer;
+    :Data Layer;
+    fork
+      :SQL Server;
+    fork again
+      :WCF/REST externos;
+    endfork
+    :Respuesta de datos;
+    :View o JsonResult;
+  endif
+endif
+
+:Respuesta al Cliente;
+stop
+@enduml

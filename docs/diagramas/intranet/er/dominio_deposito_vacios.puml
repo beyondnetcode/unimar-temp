@@ -1,0 +1,57 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam backgroundColor #FEFEFE
+
+entity TR_DVA_DOCH {
+  *ID_DOCH (PK)
+  numeroDocumento
+  fechaDocumento
+  estado
+}
+
+entity TR_DVA_DOCH_ITEM {
+  *id (PK)
+  ID_DOCH (FK)
+  item
+  cantidad
+}
+
+entity TC_DVA_PARAMETRO {
+  *id (PK)
+  clave
+  valor
+}
+
+entity TC_DVA_DEVOLUCION_HORAS_SERVICIO {
+  *id (PK)
+  rangoHorario
+  estado
+}
+
+entity TC_DVA_CENTRO_PUERTO {
+  *id (PK)
+  centro
+  puerto
+}
+
+entity TR_DVA_INGRESO_ASIGNACION {
+  *id (PK)
+  ID_DOCH (FK)
+  estado
+}
+
+entity TR_DVA_INGRESO_DEVOLUCION {
+  *id (PK)
+  ID_DOCH (FK)
+  estado
+}
+
+TR_DVA_DOCH ||--o{ TR_DVA_DOCH_ITEM : contiene
+TC_DVA_PARAMETRO ||--o{ TR_DVA_DOCH : parametriza
+TC_DVA_DEVOLUCION_HORAS_SERVICIO ||--o{ TR_DVA_DOCH : condiciona
+TC_DVA_CENTRO_PUERTO ||--o{ TR_DVA_DOCH : ubica
+TR_DVA_DOCH ||--o{ TR_DVA_INGRESO_ASIGNACION : asigna
+TR_DVA_DOCH ||--o{ TR_DVA_INGRESO_DEVOLUCION : devuelve
+
+@enduml

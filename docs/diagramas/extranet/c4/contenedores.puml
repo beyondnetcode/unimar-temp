@@ -1,0 +1,23 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+title Contenedores - SIS_INTRANET/Extranet
+
+SHOW_PERSON_OUTLINE()
+
+Person(usuario, "Usuario", "Usuario Externo/Interno")
+System_Boundary(s1, "Extranet") {
+  Container(web, "ExtranetWeb", "ASP.NET MVC 4 + Web API 4", "UI y endpoints API")
+  Container(interfaces, "Extranet.Interfaces", ".NET Class Library", "Fachadas de negocio")
+  Container(bll, "Extranet.business", ".NET Class Library", "Reglas y orquestacion")
+  Container(dal, "Extranet.data", ".NET Class Library", "Acceso a datos via SP")
+  ContainerDb(db, "SQL Server", "BD_EXTRANET / BD_INTRANET", "Datos operativos")
+}
+
+Rel(usuario, web, "Navega/Opera", "HTTPS")
+Rel(web, interfaces, "Invoca")
+Rel(interfaces, bll, "Invoca")
+Rel(bll, dal, "Invoca")
+Rel(dal, db, "CRUD/SP", "T-SQL")
+
+SHOW_LEGEND()
+@enduml

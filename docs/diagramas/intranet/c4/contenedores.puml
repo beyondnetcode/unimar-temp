@@ -1,0 +1,29 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+SHOW_PERSON_OUTLINE()
+
+Person(usuario, "Usuario", "Usuario de intranet")
+
+System_Boundary(c1, "SIS_INTRANET") {
+  Container(web, "SIS_INTRANET Web", "ASP.NET MVC 4 / Web API 4", "UI, controllers, endpoints HTTP")
+  Container(bll, "INTRANET.business", ".NET Framework 4.5", "Reglas de negocio y orquestacion")
+  Container(dal, "INTRANET.data", ".NET Framework 4.5", "Acceso a datos ADO.NET y SP")
+  Container(intf, "INTRANET.Interfaces", ".NET Framework 4.5", "Integraciones y utilidades")
+  Container(svc, "IntranetService", ".NET Framework 4.5", "Clientes SOAP/WCF")
+}
+
+ContainerDb(sql, "SQL Server", "MSSQL", "Persistencia operativa")
+System_Ext(wcf, "Servicios WCF", "Sistemas externos")
+
+Rel(usuario, web, "Usa", "HTTPS")
+Rel(web, bll, "Invoca")
+Rel(web, intf, "Invoca")
+Rel(web, svc, "Invoca")
+Rel(bll, dal, "Invoca")
+Rel(dal, sql, "Lee/Escribe", "ADO.NET/SP")
+Rel(intf, svc, "Invoca")
+Rel(svc, wcf, "Consume", "SOAP/WCF")
+
+SHOW_LEGEND()
+@enduml

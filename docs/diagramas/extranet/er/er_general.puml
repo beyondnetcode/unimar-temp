@@ -1,0 +1,95 @@
+@startuml
+entity TM_UNI_EMPRESA {
+  *ID_EMPRESA : integer
+  --
+  CT_RAZON_SOCIAL : string
+  CT_RUC : string
+}
+
+entity TM_UNI_EMPRESAOPERADOR {
+  *ID_OPERADOR : integer
+  ID_EMPRESA : integer (FK)
+}
+
+entity TB_USUARIO {
+  *ctUsuario : string
+  *cnIdPersona : integer
+  --
+  CT_EMAIL : string
+  CT_ESTADO : string
+}
+
+entity TR_DVA_DOCH {
+  *ID_DOCH : integer
+  ctNumeroBL : string
+  cnIdPersona : integer (FK)
+  --
+  CT_ESTADO : string
+  FE_REGISTRO : date
+}
+
+entity TR_DVA_DOCH_ITEM {
+  *ID_DOCT : integer
+  ID_DOCH : integer (FK)
+  --
+  CT_POSICION : string
+  DU_IMPORTE : decimal
+}
+
+entity TR_DVA_RESERVA_CAB {
+  *cnID_ReservaCab : integer
+  ID_DOCH : integer (FK)
+  --
+  FE_RESERVA : date
+}
+
+entity TR_DVA_RESERVA_DET {
+  *cnID_ReservaDet : integer
+  cnID_ReservaCab : integer (FK)
+  --
+  FE_HORA_RESERVA : datetime
+  CT_ESTADO : string
+}
+
+entity TR_DVA_RESERVA_HIST {
+  *ID_HISTORICO : integer
+  cnID_ReservaDet : integer (FK)
+}
+
+entity TR_DVA_SOLICITUDVACIO {
+  *ID_SOLICITUD : integer
+  ID_DOCH : integer (FK)
+}
+
+entity TR_DVA_SOLICITUDVACIODETALLE {
+  *ID_DETALLE : integer
+  ID_SOLICITUD : integer (FK)
+}
+
+entity TR_DVA_SOLICITUDVACIODOC {
+  *ID_DOC : integer
+  ID_SOLICITUD : integer (FK)
+}
+
+entity TR_UNI_RECLAMO {
+  *ID_RECLAMO : integer
+  cnIdPersona : integer (FK)
+}
+
+entity TR_UNI_RECLAMO_DOC {
+  *ID_RECLAMO_DOC : integer
+  ID_RECLAMO : integer (FK)
+}
+
+TM_UNI_EMPRESA ||--o{ TM_UNI_EMPRESAOPERADOR : posee
+TB_USUARIO ||--o{ TR_DVA_DOCH : registra
+TR_DVA_DOCH ||--o{ TR_DVA_DOCH_ITEM : contiene
+TR_DVA_DOCH ||--o{ TR_DVA_RESERVA_CAB : origina
+TR_DVA_RESERVA_CAB ||--o{ TR_DVA_RESERVA_DET : detalla
+TR_DVA_RESERVA_DET ||--o{ TR_DVA_RESERVA_HIST : historiza
+TR_DVA_DOCH ||--o{ TR_DVA_SOLICITUDVACIO : relaciona
+TR_DVA_SOLICITUDVACIO ||--o{ TR_DVA_SOLICITUDVACIODETALLE : detalla
+TR_DVA_SOLICITUDVACIO ||--o{ TR_DVA_SOLICITUDVACIODOC : adjunta
+TB_USUARIO ||--o{ TR_UNI_RECLAMO : crea
+TR_UNI_RECLAMO ||--o{ TR_UNI_RECLAMO_DOC : adjunta
+@enduml

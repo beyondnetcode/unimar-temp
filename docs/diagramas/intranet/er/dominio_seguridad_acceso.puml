@@ -1,0 +1,46 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam backgroundColor #FEFEFE
+
+entity TC_UNI_VISITANTE {
+  *cnID_Visitante (PK)
+  ctTipoVisitante
+  cbEstado
+}
+
+entity TR_UNI_USUARIOSSEG {
+  *id_Emple (PK)
+  ID_TipDoc
+  ctNroDoc
+  cnID_Visitante (FK)
+  Nombre
+  ID_Area (FK)
+  ID_Gerencia (FK)
+  cbEstadoHabilitado
+  cbBloqueado
+}
+
+entity TM_UNI_USUARIO {
+  *ID_Usuario (PK)
+  Usuario
+  Estado
+}
+
+entity TM_UNI_AREA {
+  *ID_Area (PK)
+  ctArea
+}
+
+entity TM_UNI_GERENCIA {
+  *ID_Gerencia (PK)
+  ctGerencia
+}
+
+TC_UNI_VISITANTE ||--o{ TR_UNI_USUARIOSSEG : clasifica
+TR_UNI_USUARIOSSEG }o--|| TM_UNI_AREA : pertenece
+TR_UNI_USUARIOSSEG }o--|| TM_UNI_GERENCIA : depende
+TR_UNI_USUARIOSSEG }o--o| TM_UNI_USUARIO : mapea
+TM_UNI_GERENCIA ||--o{ TM_UNI_AREA : organiza
+
+@enduml
